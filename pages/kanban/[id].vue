@@ -87,6 +87,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
       @closeModal="cardRemoveDialog.cancel()"
       @confirmAction="cardRemoveDialog.confirm(true)"
     />
+    <ModalConfirmation
+      v-show="clearColumnModalVisible"
+      close-button-text="Cancel"
+      confirm-button-text="Clear"
+      description="Are you sure you want to clear all cards from this column? This action is irreversible."
+      :title="$t('components.kanban.column.clearColumnAction') + '?'"
+      @closeModal="clearColumnDialog.cancel()"
+      @confirmAction="clearColumnDialog.confirm(true)"
+    />
 
     <div class="absolute top-4 z-50 ml-8 w-[calc(100vw-112px)]">
       <h1
@@ -247,6 +256,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
                   @enableDragging="draggingEnabled = true"
                   @openEditCardModal="openEditCardModal"
                   @removeCardWithConfirmation="removeCardWithConfirmation"
+                  @clearColumnWithConfirmation="clearColumnWithConfirmation"
                   @removeColumn="openColumnRemoveDialog(column.id)"
                   @removeColumnNoConfirmation="removeColumn"
                   @setColumnEditIndex="setColumnEditIndex"
@@ -337,6 +347,7 @@ const currentlyActiveCardInfo: {
 
 const removeColumnModalVisible = ref(false);
 const removeCardModalVisible = ref(false);
+const clearColumnModalVisible = ref(false);
 const deleteBoardModalVisible = ref(false);
 const renameBoardModalVisible = ref(false);
 
@@ -344,6 +355,8 @@ const editTagModalVisible = ref(false);
 
 const columnRemoveDialog = useConfirmDialog(removeColumnModalVisible);
 const cardRemoveDialog = useConfirmDialog(removeCardModalVisible);
+const clearColumnDialog = useConfirmDialog(clearColumnModalVisible);
+
 
 const cssVars = computed(() => {
   return {
@@ -827,6 +840,31 @@ const removeCardWithConfirmation = async (
       if (!cardRef.value) return;
       cardRef.value.classList.value = oldClasses;
     }, 250);
+  }
+
+  draggingEnabled.value = true;
+  emitter.emit("columnDraggingOn");
+};
+
+const clearColumnWithConfirmation = async (columnId: string) => {
+  const column = board.value.columns.filter((obj: Column) => {
+    return obj.id === columnId;
+  })[0];
+
+  if (!column || column.cards.length === 0) {
+    return;
+  }
+
+  emitter.emit("openModalWithCustomDescription", {
+    description: t("components.kanban.column.clearColumnConfirmation", {
+      columnName: column.title,
+    }),
+  });
+
+  const { isCanceled } = await clearColumnDialog.reveal();
+  if (!isCanceled) {
+    column.cards = [];
+    updateColumnProperties(column);
   }
 
   draggingEnabled.value = true;

@@ -143,6 +143,8 @@
         "addCard": "Add card",
         "addCardTop": "Add card to the top",
         "deleteColumnAction": "Delete column",
+        "clearColumnAction": "Clear column",
+        "clearColumnConfirmation": "Are you sure you want to clear all cards from this column? This action is irreversible.",
         "deleteColumnConfirmation": "Are you sure you want to delete the column '{columnName}'? This action is irreversible.",
         "addCardPlaceholder": "Enter a card name..."
       },

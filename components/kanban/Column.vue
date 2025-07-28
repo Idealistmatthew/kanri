@@ -83,6 +83,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
           }}</template>
         </Tooltip>
 
+        <Tooltip v-if="cards.length > 0" direction="top">
+          <template #trigger>
+            <TrashIcon
+              :class="[
+                'text-dim-4 text-accent-hover cursor-pointer mt-1.5 shrink-0 grow-0',
+                iconSizeClass,
+              ]"
+              @click="$emit('clearColumnWithConfirmation', id)"
+            />
+          </template>
+
+          <template #content>{{
+            $t("components.kanban.column.clearColumnAction")
+          }}</template>
+        </Tooltip>
+
         <ClickCounter
           @double-click="$emit('removeColumnNoConfirmation', id)"
           @single-click="$emit('removeColumn', id)"
@@ -212,7 +228,7 @@ import type { Ref } from "vue";
 
 import { applyDrag } from "@/utils/drag-n-drop";
 import emitter from "@/utils/emitter";
-import { PlusIcon, XMarkIcon } from "@heroicons/vue/24/solid";
+import { PlusIcon, XMarkIcon, TrashIcon } from "@heroicons/vue/24/solid";
 //@ts-expect-error, sadly this library does not have ts typings
 import { Container, Draggable } from "vue3-smooth-dnd";
 import { useI18n } from "vue-i18n";
@@ -238,6 +254,7 @@ const emit = defineEmits<{
     cardId: string | undefined,
     cardRef: Ref<HTMLDivElement | null>
   ): void;
+  (e: "clearColumnWithConfirmation", columnId: string): void;
   (e: "removeColumn", columnId: string): void;
   (e: "removeColumnNoConfirmation", columnId: string): void;
   (e: "setColumnEditIndex", columnId: number, eventType: string): void;
@@ -268,6 +285,11 @@ const draggingEnabled = ref(true);
 const boardTitle = ref(props.title);
 
 const columnDOMElement = ref<HTMLDivElement | null>(null);
+
+// Watch for changes in cardsList prop and update local cards ref
+watch(() => props.cardsList, (newCardsList) => {
+  cards.value = newCardsList;
+}, { deep: true });
 
 onMounted(() => {
   document.addEventListener("keydown", keyDownListener);
